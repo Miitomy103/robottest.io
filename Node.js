@@ -6,13 +6,12 @@ const app = express();
 const PORT = 3000;
 const SECRET_KEY = '6Lf6Ra0qAAAAABFTT_vigOF1uv2ngP-a41Xm5lWH';
 
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/verify-captcha', async (req, res) => {
-    const { token } = req.body;
-
+    const token = req.body['recaptcha-token'];
     if (!token) {
-        return res.json({ success: false, error: "トークンが提供されていません。" });
+        return res.json({ success: false, message: 'トークンが提供されていません。' });
     }
 
     const response = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
