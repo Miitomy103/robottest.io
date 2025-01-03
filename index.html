@@ -4,37 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>画像認証型CAPTCHA</title>
-    <script src="https://www.google.com/recaptcha/api.js?render=YOUR_SITE_KEY"></script>
+    <!-- Google reCAPTCHAのスクリプト -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
     <h1>画像認証型CAPTCHA</h1>
-    <form id="captcha-form">
+    <!-- CAPTCHAフォーム -->
+    <form id="captcha-form" action="/verify-captcha" method="POST">
         <div class="g-recaptcha" data-sitekey="6Lf6Ra0qAAAAAErRJEfNn4gdA1c3mDMwEc0GmX50"></div>
-        <button type="button" onclick="submitCaptcha()">送信</button>
+        <button type="submit">送信</button>
     </form>
     <p id="result-message"></p>
 
     <script>
-        async function submitCaptcha() {
+        // CAPTCHAフォーム送信後の動作
+        document.getElementById("captcha-form").addEventListener("submit", async function(event) {
+            event.preventDefault(); // デフォルトのフォーム送信を防ぐ
+
             const token = document.querySelector('.g-recaptcha-response').value;
             if (!token) {
                 document.getElementById("result-message").innerText = "CAPTCHAを完了してください。";
                 return;
             }
 
-            // サーバーにCAPTCHAトークンを送信
-            const response = await fetch('/verify-captcha', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ token }),
-            });
+            // サーバーへトークンを送信して検証
+            try {
+                const response = await fetch('/verify-captcha', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token }),
+                });
 
-            const result = await response.json();
-            const message = result.success ? "認証に成功しました！" : "認証に失敗しました。再試行してください。";
-            document.getElementById("result-message").innerText = message;
-        }
+                const result = await response.json();
+                const message = result.success ? "認証に成功しました！" : "認証に失敗しました。再試行してください。";
+                document.getElementById("result-message").innerText = message;
+            } catch (error) {
+                console.error("エラー:", error);
+                document.getElementById("result-message").innerText = "エラーが発生しました。再試行してください。";
+            }
+        });
     </script>
 </body>
 </html>
