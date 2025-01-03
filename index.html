@@ -3,41 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>reCAPTCHA v3 Demo</title>
-    <!-- reCAPTCHA v3用のスクリプト -->
-    <script src="https://www.google.com/recaptcha/api.js?render=6Lf6Ra0qAAAAAErRJEfNn4gdA1c3mDMwEc0GmX50"></script>
+    <title>画像認証型CAPTCHA</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
-    <h1>reCAPTCHA v3のデモ</h1>
-    <form id="captcha-form" action="/verify-captcha" method="POST">
-        <input type="hidden" id="recaptcha-token" name="recaptcha-token" value="">
-        <button type="submit">送信</button>
+    <h1>画像認証型CAPTCHA</h1>
+    <form id="captcha-form">
+        <div class="g-recaptcha" data-sitekey="6LfmSa0qAAAAAC4WGmbo-MukHu2W_p9vktUcg9bV"></div>
+        <button type="button" onclick="submitCaptcha()">送信</button>
     </form>
     <p id="result-message"></p>
 
     <script>
-        // ページが読み込まれたらトークンを取得
-        grecaptcha.ready(function() {
-            grecaptcha.execute('6Lf6Ra0qAAAAAErRJEfNn4gdA1c3mDMwEc0GmX50', {action: 'submit'}).then(function(token) {
-                // トークンをフォームにセット
-                document.getElementById('recaptcha-token').value = token;
-            });
-        });
+        async function submitCaptcha() {
+            const token = document.querySelector('.g-recaptcha-response').value;
+            if (!token) {
+                document.getElementById("result-message").innerText = "CAPTCHAを完了してください。";
+                return;
+            }
 
-        // フォーム送信時にトークンをサーバーへ送信
-        document.getElementById("captcha-form").addEventListener("submit", async function(event) {
-            event.preventDefault(); // フォームのデフォルト動作を無効化
-
-            const formData = new FormData(this);
+            // サーバーにCAPTCHAトークンを送信
             const response = await fetch('/verify-captcha', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token }),
             });
 
             const result = await response.json();
             const message = result.success ? "認証に成功しました！" : "認証に失敗しました。再試行してください。";
             document.getElementById("result-message").innerText = message;
-        });
+        }
     </script>
 </body>
 </html>
