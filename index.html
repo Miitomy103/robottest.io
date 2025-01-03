@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画像認証型CAPTCHA</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+    <h1>画像認証型CAPTCHA</h1>
+    <form id="captcha-form">
+        <div class="g-recaptcha" data-sitekey="YOUR_SITE_KEY"></div>
+        <button type="button" onclick="submitCaptcha()">送信</button>
+    </form>
+    <p id="result-message"></p>
+
+    <script>
+        async function submitCaptcha() {
+            const token = document.querySelector('.g-recaptcha-response').value;
+            if (!token) {
+                document.getElementById("result-message").innerText = "CAPTCHAを完了してください。";
+                return;
+            }
+
+            // サーバーにCAPTCHAトークンを送信
+            const response = await fetch('/verify-captcha', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token }),
+            });
+
+            const result = await response.json();
+            const message = result.success ? "認証に成功しました！" : "認証に失敗しました。再試行してください。";
+            document.getElementById("result-message").innerText = message;
+        }
+    </script>
+</body>
+</html>
